@@ -1,0 +1,836 @@
+
+
+
+
+Code
+Preview
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Equo — Akıllı Yatırım Platformu</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --green:#0D5C3A;--green-mid:#14784D;--green-light:#1D9E68;--green-glow:#22C57A;
+  --purple:#1E0B3B;--purple-mid:#2D1358;--purple-light:#3D1A72;--purple-accent:#6B3FA0;--purple-glow:#9B6FD4;
+  --gold:#C9A84C;--red:#D94F4F;--cyan:#00D4FF;
+  --text:#E8E2F4;--text-muted:#8B7BA8;--text-dim:#5A4E72;
+  --border:rgba(107,63,160,0.28);--border-light:rgba(107,63,160,0.13);
+  --card:rgba(20,8,45,0.75);--card-hover:rgba(35,14,72,0.92);
+  --surface:rgba(10,4,24,0.97);
+  --glow-green:0 0 30px rgba(34,197,122,0.15);
+  --glow-purple:0 0 30px rgba(107,63,160,0.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:#070212;color:var(--text);display:flex;position:relative}
+
+/* ── CANVAS 3D BG ── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── AMBIENT GLOW ── */
+.amb1{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(29,158,104,0.07) 0%,transparent 70%);top:-100px;left:-100px;pointer-events:none;z-index:0;animation:ambFloat1 12s ease-in-out infinite}
+.amb2{position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(107,63,160,0.09) 0%,transparent 70%);bottom:-80px;right:-80px;pointer-events:none;z-index:0;animation:ambFloat2 15s ease-in-out infinite}
+.amb3{position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,0.04) 0%,transparent 70%);top:40%;left:40%;pointer-events:none;z-index:0;animation:ambFloat3 20s ease-in-out infinite}
+@keyframes ambFloat1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.1)}}
+@keyframes ambFloat2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,-20px) scale(1.08)}}
+@keyframes ambFloat3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)}}
+
+/* ── SIDEBAR ── */
+.sidebar{width:224px;background:rgba(8,3,20,0.97);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:relative;z-index:20;backdrop-filter:blur(20px)}
+.sidebar::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(34,197,122,0.3),rgba(107,63,160,0.3),transparent)}
+.logo-wrap{padding:1.4rem 1.25rem 1.1rem;border-bottom:1px solid var(--border-light);position:relative}
+.logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1.5px;background:linear-gradient(135deg,var(--green-glow),var(--cyan),var(--purple-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 12px rgba(34,197,122,0.4))}
+.logo-sub{font-size:10px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;font-family:'DM Mono',monospace}
+.logo-pulse{position:absolute;top:1.4rem;right:1.25rem;width:8px;height:8px;border-radius:50%;background:var(--green-glow);box-shadow:0 0 8px var(--green-glow);animation:pulseGlow 2s infinite}
+@keyframes pulseGlow{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+.nav-section{padding:0.6rem 0 0.1rem}
+.nav-label{font-size:9px;color:var(--text-dim);padding:4px 1.25rem;letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace;opacity:0.7}
+.nav-item{padding:9px 1.25rem;font-size:13px;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.25s;border-left:2px solid transparent;margin:1px 0;position:relative;overflow:hidden}
+.nav-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(34,197,122,0.06),transparent);opacity:0;transition:opacity 0.25s}
+.nav-item:hover{color:var(--text);background:rgba(107,63,160,0.1);border-left-color:var(--purple-accent)}
+.nav-item:hover::before{opacity:1}
+.nav-item.active{color:var(--green-glow);background:linear-gradient(90deg,rgba(29,158,104,0.1),transparent);border-left-color:var(--green-glow);font-weight:500}
+.nav-item.active::before{opacity:1}
+.nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.finn-side{margin:auto 0.75rem 1rem;background:linear-gradient(135deg,rgba(29,158,104,0.12),rgba(107,63,160,0.18));border:1px solid rgba(34,197,122,0.25);border-radius:12px;padding:0.85rem;position:relative;overflow:hidden}
+.finn-side::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(34,197,122,0.04));pointer-events:none}
+.finn-side-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.finn-avatar-sm{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--purple-accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:'Syne',sans-serif;box-shadow:0 0 10px rgba(34,197,122,0.3)}
+.finn-side-name{font-size:13px;font-weight:600;color:var(--green-glow);font-family:'Syne',sans-serif}
+.finn-side-status{font-size:11px;color:var(--text-muted);line-height:1.5}
+.dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green-glow);margin-right:5px;box-shadow:0 0 6px var(--green-glow);animation:pulseGlow 2s infinite}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10}
+
+/* ── NEWS TICKER ── */
+.ticker-wrap{background:rgba(8,3,20,0.95);border-bottom:1px solid var(--border-light);padding:5px 0;overflow:hidden;flex-shrink:0;position:relative}
+.ticker-wrap::before{content:'● CANLI';position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(34,197,122,0.15),rgba(8,3,20,0.95));width:80px;z-index:2;display:flex;align-items:center;padding-left:12px;font-size:9px;color:var(--green-glow);font-family:'DM Mono',monospace;letter-spacing:1px}
+.ticker-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;background:linear-gradient(270deg,rgba(8,3,20,0.95),transparent);width:60px;z-index:2}
+.ticker{display:flex;animation:tickerScroll 35s linear infinite;white-space:nowrap;padding-left:100px}
+.ticker:hover{animation-play-state:paused}
+.ticker-item{font-size:11px;font-family:'DM Mono',monospace;padding:0 2rem;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+.ticker-item .up{color:var(--green-glow)}.ticker-item .dn{color:var(--red)}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── TOPBAR ── */
+.topbar{background:rgba(8,3,20,0.92);border-bottom:1px solid var(--border-light);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.page-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text)}
+.breadcrumb{font-size:10px;color:var(--text-dim);font-family:'DM Mono',monospace;background:rgba(107,63,160,0.1);padding:3px 8px;border-radius:4px;border:1px solid var(--border-light)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge{font-size:10px;padding:4px 11px;border-radius:20px;font-family:'DM Mono',monospace;letter-spacing:0.3px}
+.badge-green{background:rgba(29,158,104,0.15);color:var(--green-glow);border:1px solid rgba(29,158,104,0.35);box-shadow:0 0 8px rgba(34,197,122,0.08)}
+.badge-purple{background:rgba(107,63,160,0.15);color:var(--purple-glow);border:1px solid rgba(107,63,160,0.35)}
+
+/* ── PAGES ── */
+.page{display:none;flex:1;overflow-y:auto;padding:1.25rem 1.5rem;flex-direction:column;gap:14px}
+.page.active{display:flex}
+
+/* ── 3D CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;backdrop-filter:blur(12px);transition:transform 0.3s,box-shadow 0.3s;transform-style:preserve-3d}
+.card:hover{transform:translateY(-2px);box-shadow:var(--glow-purple)}
+.card-head{padding:0.8rem 1rem;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:11px;font-weight:500;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mc{background:linear-gradient(135deg,rgba(20,8,45,0.9),rgba(14,6,30,0.8));border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;transition:all 0.3s;cursor:default;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,122,0.3),transparent);opacity:0;transition:opacity 0.3s}
+.mc:hover{border-color:rgba(34,197,122,0.35);transform:translateY(-3px) scale(1.01);box-shadow:0 8px 32px rgba(34,197,122,0.1)}
+.mc:hover::before{opacity:1}
+.mc-label{font-size:10px;color:var(--text-dim);margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:1px}
+.mc-value{font-size:22px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);line-height:1.1}
+.mc-sub{font-size:11px;margin-top:5px;font-family:'DM Mono',monospace}
+.up{color:var(--green-glow)}.down{color:var(--red)}
+
+/* ── TABLE ── */
+.t-wrap{border-radius:14px;overflow:hidden;border:1px solid var(--border);background:rgba(14,6,30,0.6);backdrop-filter:blur(8px)}
+.t-head{display:grid;padding:9px 1.1rem;background:rgba(8,3,20,0.9);font-size:10px;color:var(--text-dim);font-family:'DM Mono',monospace;letter-spacing:1px;border-bottom:1px solid var(--border-light)}
+.t-row{display:grid;padding:11px 1.1rem;align-items:center;border-bottom:1px solid var(--border-light);font-size:13px;cursor:pointer;transition:all 0.2s;background:rgba(20,8,45,0.4)}
+.t-row:hover{background:rgba(35,14,72,0.8);transform:translateX(3px)}
+.t-row.selected{background:rgba(29,158,104,0.1);border-left:3px solid var(--green-glow);box-shadow:inset 0 0 20px rgba(34,197,122,0.05)}
+.t-row:last-child{border-bottom:none}
+.a-name{font-weight:600;color:var(--text);font-family:'Syne',sans-serif;font-size:13px}
+.a-sub{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace}
+.pill{font-size:10px;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace}
+.p-hisse{background:rgba(59,130,246,0.15);color:#7EB8F7;border:1px solid rgba(59,130,246,0.25)}
+.p-coin{background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.25)}
+.p-maden{background:rgba(107,63,160,0.15);color:var(--purple-glow);border:1px solid rgba(107,63,160,0.25)}
+.spark{display:flex;align-items:flex-end;gap:2px;height:26px}
+.sbar{width:5px;border-radius:2px;opacity:0.85;transition:opacity 0.2s}
+.sbar:hover{opacity:1}
+
+/* ── CHARTS ── */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-chart{padding:0.5rem 1rem 1rem;display:flex;align-items:flex-end;gap:4px;height:80px}
+.mbar{border-radius:3px 3px 0 0;flex:1;transition:all 0.3s}
+.mbar:hover{opacity:1!important;filter:brightness(1.3)}
+
+/* ── DONUT ── */
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:0.85rem 1rem 1.1rem}
+.legend{display:flex;flex-direction:column;gap:9px}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
+
+/* ── FINN WIDGET ── */
+.finn-panel{background:linear-gradient(135deg,rgba(13,92,58,0.1),rgba(20,8,45,0.85));border:1px solid rgba(34,197,122,0.25);border-radius:14px;overflow:hidden;position:relative}
+.finn-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(34,197,122,0.05),transparent 60%);pointer-events:none}
+.finn-head{padding:11px 1rem;background:rgba(13,92,58,0.18);border-bottom:1px solid rgba(34,197,122,0.18);display:flex;align-items:center;gap:10px}
+.finn-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--purple-accent));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;font-family:'Syne',sans-serif;flex-shrink:0;box-shadow:0 0 16px rgba(34,197,122,0.35),0 0 32px rgba(34,197,122,0.15)}
+.finn-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--green-glow);text-shadow:0 0 12px rgba(34,197,122,0.4)}
+.finn-sub{font-size:11px;color:var(--text-muted);margin-left:4px}
+.finn-body{padding:1rem;font-size:13px;color:var(--text-muted);line-height:1.85;min-height:72px;transition:opacity 0.3s}
+.finn-chips{padding:0 1rem 0.9rem;display:flex;gap:7px;flex-wrap:wrap}
+.chip{font-size:11px;padding:6px 12px;border-radius:20px;background:rgba(107,63,160,0.12);color:var(--purple-glow);border:1px solid rgba(107,63,160,0.28);cursor:pointer;transition:all 0.2s;font-family:'DM Mono',monospace}
+.chip:hover{background:rgba(107,63,160,0.28);border-color:var(--purple-accent);color:var(--text);transform:translateY(-1px);box-shadow:0 4px 12px rgba(107,63,160,0.2)}
+.finn-typing{display:none;align-items:center;gap:4px;margin-left:auto}
+.finn-dot{width:5px;height:5px;border-radius:50%;background:var(--green-glow);animation:tdot 1.2s infinite}
+.finn-dot:nth-child(2){animation-delay:0.2s}.finn-dot:nth-child(3){animation-delay:0.4s}
+@keyframes tdot{0%,80%,100%{transform:translateY(0);opacity:0.4}40%{transform:translateY(-5px);opacity:1}}
+
+/* ── PORTFOLIO ── */
+.pfcard{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;backdrop-filter:blur(12px)}
+.pf-asset{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-light);gap:12px;transition:background 0.2s;border-radius:4px;padding-left:4px}
+.pf-asset:hover{background:rgba(107,63,160,0.06)}
+.pf-asset:last-child{border-bottom:none}
+.pf-bar-wrap{width:100px;height:6px;background:rgba(107,63,160,0.15);border-radius:3px;overflow:hidden}
+.pf-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green-mid),var(--green-glow));animation:barGrow 1.2s ease-out}
+@keyframes barGrow{from{width:0!important}to{width:var(--w)}}
+
+/* ── NEWS (HABERLER) — CINEMATIC ── */
+.news-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.nf-btn{font-size:11px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:rgba(20,8,45,0.7);color:var(--text-muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.2s}
+.nf-btn.active,.nf-btn:hover{background:rgba(107,63,160,0.2);border-color:var(--purple-accent);color:var(--text)}
+.news-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}
+.news-featured{background:linear-gradient(135deg,rgba(20,8,45,0.9),rgba(35,14,72,0.7));border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.3s;position:relative}
+.news-featured:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(107,63,160,0.25),0 0 0 1px rgba(107,63,160,0.4)}
+.news-img{height:140px;background:linear-gradient(135deg,rgba(29,158,104,0.2),rgba(107,63,160,0.3));display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;overflow:hidden}
+.news-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(20,8,45,0.8))}
+.news-img-icon{filter:drop-shadow(0 0 20px currentColor);z-index:1}
+.news-body{padding:1rem}
+.news-tag{font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:8px;letter-spacing:0.5px}
+.news-title-lg{font-size:14px;font-weight:600;color:var(--text);line-height:1.55;margin-bottom:8px;font-family:'Syne',sans-serif}
+.news-summary{font-size:12px;color:var(--text-muted);line-height:1.65;margin-bottom:8px}
+.news-meta{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px}
+.news-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--text-dim)}
+.news-stack{display:flex;flex-direction:column;gap:10px}
+.haber-item{background:linear-gradient(135deg,rgba(20,8,45,0.85),rgba(14,6,30,0.9));border:1px solid var(--border);border-radius:14px;padding:1rem;transition:all 0.3s;cursor:pointer;position:relative;overflow:hidden}
+.haber-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tag-color,var(--purple-accent));opacity:0.6;transition:opacity 0.2s}
+.haber-item:hover{border-color:rgba(107,63,160,0.5);transform:translateX(4px);box-shadow:0 8px 32px rgba(107,63,160,0.15)}
+.haber-item:hover::before{opacity:1}
+.haber-tag{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:7px;letter-spacing:0.3px}
+.haber-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:5px;line-height:1.5;font-family:'Syne',sans-serif}
+.haber-meta{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:6px}
+.news-impact{display:flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;margin-top:6px}
+.impact-bar{height:4px;border-radius:2px;width:40px;background:rgba(107,63,160,0.2);overflow:hidden}
+.impact-fill{height:100%;border-radius:2px}
+
+/* ── FINN FULL PAGE ── */
+.finn-full-panel{background:linear-gradient(135deg,rgba(13,92,58,0.08),rgba(20,8,45,0.9));border:1px solid rgba(34,197,122,0.22);border-radius:14px;overflow:hidden;flex:1;display:flex;flex-direction:column;position:relative}
+.finn-full-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(34,197,122,0.04),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(107,63,160,0.06),transparent 60%);pointer-events:none}
+.finn-chat{flex:1;overflow-y:auto;padding:1.1rem;display:flex;flex-direction:column;gap:10px;min-height:200px}
+.finn-msg{border-radius:12px;padding:0.8rem 1rem;font-size:13px;line-height:1.75;max-width:88%;animation:msgIn 0.3s ease-out}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.finn-msg.finn{align-self:flex-start;background:linear-gradient(135deg,rgba(13,92,58,0.15),rgba(20,8,45,0.8));border:1px solid rgba(34,197,122,0.22);color:var(--text-muted)}
+.finn-msg.user{align-self:flex-end;background:linear-gradient(135deg,rgba(107,63,160,0.25),rgba(61,26,114,0.4));border:1px solid rgba(107,63,160,0.35);color:var(--text)}
+.finn-input-row{padding:0.8rem 1rem;border-top:1px solid rgba(34,197,122,0.18);display:flex;gap:8px;background:rgba(8,3,20,0.5);backdrop-filter:blur(8px)}
+.finn-input{flex:1;background:rgba(14,6,30,0.85);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+.finn-input:focus{border-color:var(--green-mid);box-shadow:0 0 12px rgba(34,197,122,0.1)}
+.finn-input::placeholder{color:var(--text-dim)}
+.finn-send{background:linear-gradient(135deg,var(--green-mid),var(--green-light));border:none;border-radius:10px;padding:9px 18px;color:white;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;transition:all 0.2s;box-shadow:0 4px 16px rgba(29,158,104,0.2)}
+.finn-send:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(29,158,104,0.35)}
+
+/* ── SETTINGS ── */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:1rem 1rem;border-bottom:1px solid var(--border-light);transition:background 0.2s}
+.setting-row:hover{background:rgba(107,63,160,0.05)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:13px;color:var(--text);font-weight:500}
+.setting-sub{font-size:11px;color:var(--text-dim);margin-top:3px}
+.toggle{width:42px;height:23px;border-radius:12px;background:rgba(107,63,160,0.3);cursor:pointer;position:relative;transition:background 0.3s;flex-shrink:0}
+.toggle.on{background:var(--green-mid);box-shadow:0 0 10px rgba(34,197,122,0.3)}
+.toggle::after{content:'';position:absolute;width:17px;height:17px;border-radius:50%;background:white;top:3px;left:3px;transition:left 0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.toggle.on::after{left:22px}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(107,63,160,0.3);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--purple-accent)}
+
+/* ── 3D PERSPECTIVE SECTION LABELS ── */
+.section-label{font-size:10px;color:var(--text-dim);font-family:'DM Mono',monospace;letter-spacing:1.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border-light),transparent)}
+
+/* ── PRICE GLOW EFFECT ── */
+.price-up-glow{text-shadow:0 0 10px rgba(34,197,122,0.5);animation:glowPulse 3s ease-in-out infinite}
+.price-dn-glow{text-shadow:0 0 10px rgba(217,79,79,0.5)}
+@keyframes glowPulse{0%,100%{text-shadow:0 0 8px rgba(34,197,122,0.4)}50%{text-shadow:0 0 16px rgba(34,197,122,0.7)}}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="amb1"></div>
+<div class="amb2"></div>
+<div class="amb3"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo">Equo</div>
+    <div class="logo-sub">Akıllı Yatırım Platformu</div>
+    <div class="logo-pulse"></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Ana Menü</div>
+    <div class="nav-item active" onclick="goPage('pano',this)"><span class="nav-icon">◈</span>Genel Pano</div>
+    <div class="nav-item" onclick="goPage('portfoy',this)"><span class="nav-icon">◎</span>Portföyüm</div>
+    <div class="nav-item" onclick="goPage('gecmis',this)"><span class="nav-icon">◷</span>İşlem Geçmişi</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Piyasalar</div>
+    <div class="nav-item" onclick="goPage('hisse',this)"><span class="nav-icon">▲</span>Hisse Senetleri</div>
+    <div class="nav-item" onclick="goPage('kripto',this)"><span class="nav-icon">◉</span>Kripto Paralar</div>
+    <div class="nav-item" onclick="goPage('madenler',this)"><span class="nav-icon">◆</span>Değerli Madenler</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Finn YZ</div>
+    <div class="nav-item" onclick="goPage('finn',this)"><span class="nav-icon">✦</span>Finn ile Analiz</div>
+    <div class="nav-item" onclick="goPage('haberler',this)"><span class="nav-icon">⊞</span>Piyasa Haberleri</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Hesap</div>
+    <div class="nav-item" onclick="goPage('ayarlar',this)"><span class="nav-icon">⚙</span>Ayarlar</div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="finn-side">
+    <div class="finn-side-top">
+      <div class="finn-avatar-sm">F</div>
+      <div class="finn-side-name">Finn</div>
+    </div>
+    <div class="finn-side-status"><span class="dot-live"></span>Aktif · analiz hazır</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="tickerTrack">
+      <span class="ticker-item">BTC <span class="dn">▼ %0.96</span> ₺3.440.622</span>
+      <span class="ticker-item">ETH <span class="up">▲ %3.96</span> ₺103.050</span>
+      <span class="ticker-item">BIST100 <span class="up">▲ %0.64</span> 14.421</span>
+      <span class="ticker-item">ALTIN <span class="dn">▼ %0.18</span> ₺6.644</span>
+      <span class="ticker-item">GÜMÜŞ <span class="up">▲ %0.10</span> ₺106</span>
+      <span class="ticker-item">THYAO <span class="up">▲ %2.84</span> ₺312,40</span>
+      <span class="ticker-item">SOL <span class="dn">▼ %1.22</span> ₺7.280</span>
+      <span class="ticker-item">GARAN <span class="up">▲ %1.20</span> ₺142,80</span>
+      <span class="ticker-item">BNB <span class="up">▲ %0.88</span> ₺23.400</span>
+      <span class="ticker-item">PLATİN <span class="up">▲ %0.34</span> ₺3.120</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item">BTC <span class="dn">▼ %0.96</span> ₺3.440.622</span>
+      <span class="ticker-item">ETH <span class="up">▲ %3.96</span> ₺103.050</span>
+      <span class="ticker-item">BIST100 <span class="up">▲ %0.64</span> 14.421</span>
+      <span class="ticker-item">ALTIN <span class="dn">▼ %0.18</span> ₺6.644</span>
+      <span class="ticker-item">GÜMÜŞ <span class="up">▲ %0.10</span> ₺106</span>
+      <span class="ticker-item">THYAO <span class="up">▲ %2.84</span> ₺312,40</span>
+      <span class="ticker-item">SOL <span class="dn">▼ %1.22</span> ₺7.280</span>
+      <span class="ticker-item">GARAN <span class="up">▲ %1.20</span> ₺142,80</span>
+      <span class="ticker-item">BNB <span class="up">▲ %0.88</span> ₺23.400</span>
+      <span class="ticker-item">PLATİN <span class="up">▲ %0.34</span> ₺3.120</span>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title" id="pageTitle">Genel Pano</div>
+      <div class="breadcrumb" id="breadcrumb">equo / pano</div>
+    </div>
+    <div class="topbar-right">
+      <span class="badge badge-green">● Piyasa Açık</span>
+      <span class="badge badge-purple">29 Nis 2026 · 14:32</span>
+    </div>
+  </div>
+
+  <!-- ═══ PANO ═══ -->
+  <div class="page active" id="page-pano">
+    <div class="metrics">
+      <div class="mc">
+        <div class="mc-label">TOPLAM PORTFÖY</div>
+        <div class="mc-value">₺284.750</div>
+        <div class="mc-sub up">▲ %3.24 bugün</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">GÜNLÜK KAR/ZARAR</div>
+        <div class="mc-value price-up-glow" style="color:var(--green-glow)">+₺8.920</div>
+        <div class="mc-sub up">▲ Son 24 saat</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">EN İYİ VARLIK</div>
+        <div class="mc-value" style="font-size:16px;padding-top:3px">Ethereum</div>
+        <div class="mc-sub up">▲ %3.96 · ETH</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">TAKİP EDİLEN</div>
+        <div class="mc-value">24</div>
+        <div class="mc-sub" style="color:var(--text-dim)">Hisse · Coin · Maden</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-head"><span class="card-title">HAFTALIK PERFORMANS</span><span class="up" style="font-size:12px;font-family:'DM Mono',monospace">▲ %8.1</span></div>
+        <div class="mini-chart" id="weekChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">PORTFÖY DAĞILIMI</span></div>
+        <div class="donut-wrap">
+          <svg width="80" height="80" viewBox="0 0 80 80" style="filter:drop-shadow(0 0 10px rgba(29,158,104,0.3))">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(107,63,160,0.2)" stroke-width="14"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#1D9E68" stroke-width="14" stroke-dasharray="112 76" stroke-dashoffset="0" transform="rotate(-90 40 40)"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#C9A84C" stroke-width="14" stroke-dasharray="57 131" stroke-dashoffset="-112" transform="rotate(-90 40 40)"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#6B3FA0" stroke-width="14" stroke-dasharray="20 168" stroke-dashoffset="-169" transform="rotate(-90 40 40)"/>
+          </svg>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot" style="background:#1D9E68;box-shadow:0 0 6px #1D9E68"></div>Hisse %59</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#C9A84C;box-shadow:0 0 6px #C9A84C"></div>Kripto %30</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#6B3FA0;box-shadow:0 0 6px #6B3FA0"></div>Maden %11</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">PİYASA TABLOSU — varlığa tıkla, Finn analiz etsin</div>
+      <div class="t-wrap">
+        <div class="t-head" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr">
+          <span>VARLIK</span><span>FİYAT</span><span>DEĞİŞİM</span><span>HACİM</span><span>GRAFİK</span><span>TÜR</span>
+        </div>
+        <div class="t-row" id="r0" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr" onclick="selectRow(0)">
+          <div><div class="a-name">BIST 100</div><div class="a-sub">İstanbul Borsası</div></div>
+          <div style="font-family:'DM Mono',monospace">14.421,65</div>
+          <div class="up" style="font-family:'DM Mono',monospace">▲ 0.64%</div>
+          <div style="font-size:12px;color:var(--text-muted)">Yüksek</div>
+          <div class="spark" id="s0"></div>
+          <div><span class="pill p-hisse">Hisse</span></div>
+        </div>
+        <div class="t-row" id="r1" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr" onclick="selectRow(1)">
+          <div><div class="a-name">Bitcoin</div><div class="a-sub">BTC / TRY</div></div>
+          <div style="font-family:'DM Mono',monospace">₺3.440.622</div>
+          <div class="dn" style="font-family:'DM Mono',monospace;color:var(--red)">▼ 0.96%</div>
+          <div style="font-size:12px;color:var(--text-muted)">Çok Yüksek</div>
+          <div class="spark" id="s1"></div>
+          <div><span class="pill p-coin">Coin</span></div>
+        </div>
+        <div class="t-row" id="r2" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr" onclick="selectRow(2)">
+          <div><div class="a-name">Altın</div><div class="a-sub">Gram / TRY</div></div>
+          <div style="font-family:'DM Mono',monospace">₺6.644</div>
+          <div class="down" style="font-family:'DM Mono',monospace">▼ 0.18%</div>
+          <div style="font-size:12px;color:var(--text-muted)">Orta</div>
+          <div class="spark" id="s2"></div>
+          <div><span class="pill p-maden">Maden</span></div>
+        </div>
+        <div class="t-row" id="r3" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr" onclick="selectRow(3)">
+          <div><div class="a-name">Ethereum</div><div class="a-sub">ETH / TRY</div></div>
+          <div style="font-family:'DM Mono',monospace">₺103.050</div>
+          <div class="up" style="font-family:'DM Mono',monospace">▲ 3.96%</div>
+          <div style="font-size:12px;color:var(--text-muted)">Yüksek</div>
+          <div class="spark" id="s3"></div>
+          <div><span class="pill p-coin">Coin</span></div>
+        </div>
+        <div class="t-row" id="r4" style="grid-template-columns:2fr 1.4fr 0.9fr 0.9fr 1fr 0.85fr" onclick="selectRow(4)">
+          <div><div class="a-name">Gümüş</div><div class="a-sub">Gram / TRY</div></div>
+          <div style="font-family:'DM Mono',monospace">₺106</div>
+          <div class="up" style="font-family:'DM Mono',monospace">▲ 0.10%</div>
+          <div style="font-size:12px;color:var(--text-muted)">Düşük</div>
+          <div class="spark" id="s4"></div>
+          <div><span class="pill p-maden">Maden</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="finn-panel">
+      <div class="finn-head">
+        <div class="finn-avatar">F</div>
+        <div><span class="finn-title">Finn</span><span class="finn-sub">— Equo YZ Asistanı</span></div>
+        <div class="finn-typing" id="finnTyping"><div class="finn-dot"></div><div class="finn-dot"></div><div class="finn-dot"></div></div>
+      </div>
+      <div class="finn-body" id="finnBody">Merhaba! Ben <strong style="color:var(--green-glow)">Finn</strong> — Equo'nun yapay zeka finans asistanıyım. Tablodaki bir varlığa tıkla veya aşağıdaki sorulardan birini seç, sana detaylı analiz yapayım. 🟢</div>
+      <div class="finn-chips">
+        <div class="chip" onclick="askFinn('bist')">BIST 100 nedir?</div>
+        <div class="chip" onclick="askFinn('btc')">Bitcoin analizi</div>
+        <div class="chip" onclick="askFinn('altin')">Altın neden düştü?</div>
+        <div class="chip" onclick="askFinn('portfoy')">Portföyüm nasıl?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PORTFÖY ═══ -->
+  <div class="page" id="page-portfoy">
+    <div class="metrics">
+      <div class="mc"><div class="mc-label">TOPLAM DEĞER</div><div class="mc-value">₺284.750</div><div class="mc-sub up">▲ %3.24</div></div>
+      <div class="mc"><div class="mc-label">YATIRIM MALİYETİ</div><div class="mc-value">₺241.200</div><div class="mc-sub" style="color:var(--text-dim)">Toplam maliyet</div></div>
+      <div class="mc"><div class="mc-label">TOPLAM KAZANÇ</div><div class="mc-value price-up-glow" style="color:var(--green-glow)">+₺43.550</div><div class="mc-sub up">▲ %18.1 toplam</div></div>
+      <div class="mc"><div class="mc-label">POZİSYON SAYISI</div><div class="mc-value">7</div><div class="mc-sub" style="color:var(--text-dim)">Aktif pozisyon</div></div>
+    </div>
+    <div class="pfcard">
+      <div class="card-head" style="padding:0.8rem 1rem"><span class="card-title">POZİSYONLARIM</span></div>
+      <div style="padding:0 1rem">
+        <div class="pf-asset"><div style="flex:1"><div class="a-name">BIST 100 ETF</div><div class="a-sub">12 adet · ₺165.750</div></div><div style="text-align:right;min-width:80px"><div class="up" style="font-family:'DM Mono',monospace">+₺18.200</div><div style="font-size:11px;color:var(--text-dim)">%12.3</div></div><div class="pf-bar-wrap"><div class="pf-bar" style="--w:59%;width:59%"></div></div></div>
+        <div class="pf-asset"><div style="flex:1"><div class="a-name">Bitcoin</div><div class="a-sub">0.024 BTC · ₺82.120</div></div><div style="text-align:right;min-width:80px"><div class="up" style="font-family:'DM Mono',monospace">+₺14.800</div><div style="font-size:11px;color:var(--text-dim)">%22.0</div></div><div class="pf-bar-wrap"><div class="pf-bar" style="--w:30%;width:30%;background:linear-gradient(90deg,#B8860B,#C9A84C)"></div></div></div>
+        <div class="pf-asset"><div style="flex:1"><div class="a-name">Ethereum</div><div class="a-sub">0.42 ETH · ₺76.100</div></div><div style="text-align:right;min-width:80px"><div class="up" style="font-family:'DM Mono',monospace">+₺9.200</div><div style="font-size:11px;color:var(--text-dim)">%13.7</div></div><div class="pf-bar-wrap"><div class="pf-bar" style="--w:27%;width:27%;background:linear-gradient(90deg,#B8860B,#C9A84C)"></div></div></div>
+        <div class="pf-asset"><div style="flex:1"><div class="a-name">Altın</div><div class="a-sub">8 gram · ₺30.736</div></div><div style="text-align:right;min-width:80px"><div class="down" style="font-family:'DM Mono',monospace">-₺124</div><div style="font-size:11px;color:var(--text-dim)">-0.4%</div></div><div class="pf-bar-wrap"><div class="pf-bar" style="--w:11%;width:11%;background:linear-gradient(90deg,#4A3080,#6B3FA0)"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GEÇMİŞ ═══ -->
+  <div class="page" id="page-gecmis">
+    <div class="card">
+      <div class="card-head"><span class="card-title">İŞLEM GEÇMİŞİ</span><span class="badge badge-purple" style="font-size:10px">Son 30 gün</span></div>
+      <div style="padding:0 1rem">
+        <div class="pf-asset" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="width:9px;height:9px;border-radius:50%;background:var(--green-glow);box-shadow:0 0 6px var(--green-glow)"></div><div><div class="a-name" style="font-size:13px">Bitcoin Alım</div><div class="a-sub">24 Nis 2026 · 0.012 BTC</div></div></div><div style="text-align:right"><div style="font-family:'DM Mono',monospace;color:var(--text)">₺41.059</div><div class="up" style="font-size:11px">ALIM</div></div></div>
+        <div class="pf-asset" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)"></div><div><div class="a-name" style="font-size:13px">BIST 100 Satım</div><div class="a-sub">20 Nis 2026 · 5 adet ETF</div></div></div><div style="text-align:right"><div style="font-family:'DM Mono',monospace;color:var(--text)">₺48.235</div><div class="down" style="font-size:11px">SATIM</div></div></div>
+        <div class="pf-asset" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="width:9px;height:9px;border-radius:50%;background:var(--green-glow);box-shadow:0 0 6px var(--green-glow)"></div><div><div class="a-name" style="font-size:13px">Altın Alım</div><div class="a-sub">15 Nis 2026 · 3 gram</div></div></div><div style="text-align:right"><div style="font-family:'DM Mono',monospace;color:var(--text)">₺11.400</div><div class="up" style="font-size:11px">ALIM</div></div></div>
+        <div class="pf-asset" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="width:9px;height:9px;border-radius:50%;background:var(--green-glow);box-shadow:0 0 6px var(--green-glow)"></div><div><div class="a-name" style="font-size:13px">Ethereum Alım</div><div class="a-sub">10 Nis 2026 · 0.2 ETH</div></div></div><div style="text-align:right"><div style="font-family:'DM Mono',monospace;color:var(--text)">₺36.260</div><div class="up" style="font-size:11px">ALIM</div></div></div>
+        <div class="pf-asset" style="border:none;gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)"></div><div><div class="a-name" style="font-size:13px">Gümüş Satım</div><div class="a-sub">5 Nis 2026 · 10 gram</div></div></div><div style="text-align:right"><div style="font-family:'DM Mono',monospace;color:var(--text)">₺478</div><div class="down" style="font-size:11px">SATIM</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HİSSE ═══ -->
+  <div class="page" id="page-hisse">
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+      <div class="mc"><div class="mc-label">BIST 100</div><div class="mc-value">14.421,65</div><div class="mc-sub up">▲ %0.64</div></div>
+      <div class="mc"><div class="mc-label">BIST 30</div><div class="mc-value">11.240</div><div class="mc-sub up">▲ %2.11</div></div>
+      <div class="mc"><div class="mc-label">BIST BANKA</div><div class="mc-value">8.320</div><div class="mc-sub down">▼ %0.32</div></div>
+    </div>
+    <div class="t-wrap">
+      <div class="t-head" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><span>HİSSE</span><span>FİYAT</span><span>DEĞİŞİM</span><span>PİYASA DEĞERİ</span><span>HACİM</span></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">THYAO</div><div class="a-sub">Türk Hava Yolları</div></div><div style="font-family:'DM Mono',monospace">₺312,40</div><div class="up">▲ 2.84%</div><div style="font-size:12px;color:var(--text-muted)">₺430 Mlr</div><div style="font-size:12px;color:var(--text-muted)">Yüksek</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">GARAN</div><div class="a-sub">Garanti Bankası</div></div><div style="font-family:'DM Mono',monospace">₺142,80</div><div class="up">▲ 1.20%</div><div style="font-size:12px;color:var(--text-muted)">₺600 Mlr</div><div style="font-size:12px;color:var(--text-muted)">Çok Yüksek</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">EREGL</div><div class="a-sub">Ereğli Demir Çelik</div></div><div style="font-family:'DM Mono',monospace">₺56,20</div><div class="down">▼ 0.53%</div><div style="font-size:12px;color:var(--text-muted)">₺190 Mlr</div><div style="font-size:12px;color:var(--text-muted)">Orta</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">SISE</div><div class="a-sub">Şişe Cam</div></div><div style="font-family:'DM Mono',monospace">₺42,16</div><div class="up">▲ 0.87%</div><div style="font-size:12px;color:var(--text-muted)">₺125 Mlr</div><div style="font-size:12px;color:var(--text-muted)">Orta</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ KRİPTO ═══ -->
+  <div class="page" id="page-kripto">
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+      <div class="mc"><div class="mc-label">TOPLAM KRİPTO PİYASA</div><div class="mc-value" style="font-size:18px">$2.84T</div><div class="mc-sub up">▲ %1.9</div></div>
+      <div class="mc"><div class="mc-label">BTC DOMINANCE</div><div class="mc-value">54.2%</div><div class="mc-sub up">▲ %0.4</div></div>
+      <div class="mc"><div class="mc-label">KORKU & AÇGÖZLÜLÜK</div><div class="mc-value price-up-glow" style="color:var(--green-glow);font-size:17px">Açgözlülük</div><div class="mc-sub" style="color:var(--text-dim)">Endeks: 72</div></div>
+    </div>
+    <div class="t-wrap">
+      <div class="t-head" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><span>KRİPTO</span><span>FİYAT (TRY)</span><span>DEĞİŞİM</span><span>PİYASA DEĞERİ</span><span>HACİM</span></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">Bitcoin</div><div class="a-sub">BTC</div></div><div style="font-family:'DM Mono',monospace">₺3.440.622</div><div class="down">▼ 0.96%</div><div style="font-size:12px;color:var(--text-muted)">$1.72T</div><div style="font-size:12px;color:var(--text-muted)">Çok Yüksek</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">Ethereum</div><div class="a-sub">ETH</div></div><div style="font-family:'DM Mono',monospace">₺103.050</div><div class="up">▲ 3.96%</div><div style="font-size:12px;color:var(--text-muted)">$412B</div><div style="font-size:12px;color:var(--text-muted)">Yüksek</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">Solana</div><div class="a-sub">SOL</div></div><div style="font-family:'DM Mono',monospace">₺7.280</div><div class="down">▼ 1.22%</div><div style="font-size:12px;color:var(--text-muted)">$95B</div><div style="font-size:12px;color:var(--text-muted)">Yüksek</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1fr"><div><div class="a-name">BNB</div><div class="a-sub">BNB</div></div><div style="font-family:'DM Mono',monospace">₺23.400</div><div class="up">▲ 0.88%</div><div style="font-size:12px;color:var(--text-muted)">$48B</div><div style="font-size:12px;color:var(--text-muted)">Orta</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ MADENLER ═══ -->
+  <div class="page" id="page-madenler">
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+      <div class="mc"><div class="mc-label">ALTIN (GRAM)</div><div class="mc-value">₺6.644</div><div class="mc-sub down">▼ %0.18</div></div>
+      <div class="mc"><div class="mc-label">GÜMÜŞ (GRAM)</div><div class="mc-value">₺106</div><div class="mc-sub up">▲ %0.10</div></div>
+      <div class="mc"><div class="mc-label">PLATİN (GRAM)</div><div class="mc-value">₺3.120</div><div class="mc-sub up">▲ %0.34</div></div>
+    </div>
+    <div class="t-wrap">
+      <div class="t-head" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1.5fr"><span>MADEN</span><span>FİYAT</span><span>DEĞİŞİM</span><span>HACİM</span><span>AÇIKLAMA</span></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1.5fr"><div><div class="a-name">Altın</div><div class="a-sub">XAU / TRY · Gram</div></div><div style="font-family:'DM Mono',monospace">₺6.644</div><div class="down">▼ 0.18%</div><div style="font-size:12px;color:var(--text-muted)">Orta</div><div style="font-size:11px;color:var(--text-dim)">Güvenli liman varlığı</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1.5fr"><div><div class="a-name">Gümüş</div><div class="a-sub">XAG / TRY · Gram</div></div><div style="font-family:'DM Mono',monospace">₺106</div><div class="up">▲ 0.10%</div><div style="font-size:12px;color:var(--text-muted)">Düşük</div><div style="font-size:11px;color:var(--text-dim)">Endüstriyel + değerli</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1.5fr"><div><div class="a-name">Platin</div><div class="a-sub">XPT / TRY · Gram</div></div><div style="font-family:'DM Mono',monospace">₺3.120</div><div class="up">▲ 0.34%</div><div style="font-size:12px;color:var(--text-muted)">Düşük</div><div style="font-size:11px;color:var(--text-dim)">Otomotiv sektörü talebi</div></div>
+      <div class="t-row" style="grid-template-columns:2fr 1.3fr 1fr 1fr 1.5fr"><div><div class="a-name">Paladyum</div><div class="a-sub">XPD / TRY · Gram</div></div><div style="font-family:'DM Mono',monospace">₺4.280</div><div class="down">▼ 1.10%</div><div style="font-size:12px;color:var(--text-muted)">Düşük</div><div style="font-size:11px;color:var(--text-dim)">Katalizör üretimi</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ FİNN (FULL PAGE) ═══ -->
+  <div class="page" id="page-finn">
+    <div class="finn-full-panel">
+      <div class="finn-head">
+        <div class="finn-avatar">F</div>
+        <div><span class="finn-title" style="font-size:16px">Finn</span><span class="finn-sub">— Equo YZ Finans Asistanı</span></div>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <span class="badge badge-green">✦ Aktif</span>
+        </div>
+      </div>
+      <div class="finn-chat" id="finnChat">
+        <div class="finn-msg finn">Merhaba! 👋 Ben <strong style="color:var(--green-glow)">Finn</strong> — Equo'nun yapay zeka destekli finans asistanıyım.<br><br>Hisse, kripto, değerli maden veya portföy hakkında her soruyu sorabilirsin. Basit bir "merhaba"dan karmaşık piyasa analizlerine kadar hepsi benim için bir zevk. Sana yardımcı olmak için buradayım! 🟢</div>
+      </div>
+      <div style="padding:0.5rem 1rem 0;display:flex;flex-wrap:wrap;gap:7px">
+        <div class="chip" onclick="finnChat('BIST 100 hakkında bilgi ver')">BIST 100 analizi</div>
+        <div class="chip" onclick="finnChat('Portföyümü değerlendir')">Portföy değerlendirmesi</div>
+        <div class="chip" onclick="finnChat('Altın mı Bitcoin mi?')">Altın mı Bitcoin mi?</div>
+        <div class="chip" onclick="finnChat('Nasılsın?')">Nasılsın?</div>
+        <div class="chip" onclick="finnChat('Bugün piyasalar nasıl?')">Bugün piyasalar?</div>
+      </div>
+      <div class="finn-input-row">
+        <input class="finn-input" id="finnInput" placeholder="Finn'e sor... (ör: Merhaba! / Bitcoin neden yükseldi?)" onkeydown="if(event.key==='Enter')sendFinn()"/>
+        <button class="finn-send" onclick="sendFinn()">Gönder ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HABERLER — CİNEMATİK ═══ -->
+  <div class="page" id="page-haberler">
+    <div class="news-filters">
+      <div class="nf-btn active" onclick="filterNews('all',this)">Tümü</div>
+      <div class="nf-btn" onclick="filterNews('kripto',this)">Kripto</div>
+      <div class="nf-btn" onclick="filterNews('hisse',this)">Hisse</div>
+      <div class="nf-btn" onclick="filterNews('maden',this)">Maden</div>
+      <div class="nf-btn" onclick="filterNews('ekonomi',this)">Ekonomi</div>
+    </div>
+
+    <div class="news-grid" id="newsGrid">
+      <!-- featured -->
+      <div class="news-featured" data-cat="kripto">
+        <div class="news-img">
+          <div class="news-img-icon" style="color:#F7931A;font-size:52px">₿</div>
+        </div>
+        <div class="news-body">
+          <span class="news-tag" style="background:rgba(247,147,26,0.15);color:#F7931A;border:1px solid rgba(247,147,26,0.3)">● KRİPTO · ÖNE ÇIKAN</span>
+          <div class="news-title-lg">Bitcoin 77.000 Dolar Bandında — Fed Kararı Öncesi Piyasa Temkinli Seyrini Koruyor</div>
+          <div class="news-summary">Federal Rezerv'in bugünkü faiz kararı öncesinde kripto piyasaları ihtiyatlı bir seyir izliyor. Analistler, olası faiz indirimi durumunda BTC'nin 80.000 dolar seviyesini test edebileceğini öngörüyor.</div>
+          <div class="news-meta">
+            <span>28 Nis 2026</span><div class="news-meta-dot"></div>
+            <span>Bloomberg Kripto</span><div class="news-meta-dot"></div>
+            <span>12:41</span>
+          </div>
+          <div class="news-impact">
+            <span style="font-size:10px;color:var(--text-dim)">Etki:</span>
+            <div class="impact-bar"><div class="impact-fill" style="width:75%;background:var(--green-glow)"></div></div>
+            <span style="color:var(--green-glow)">Yüksek</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- stack -->
+      <div class="news-stack">
+        <div class="haber-item" data-cat="hisse" style="--tag-color:#7EB8F7">
+          <span class="haber-tag" style="background:rgba(59,130,246,0.12);color:#7EB8F7;border:1px solid rgba(59,130,246,0.2)">HİSSE</span>
+          <div class="haber-title">BIST 100 14.421 Puandan Açıldı — Bankacılık Endeksi %0.73 Yükseldi</div>
+          <div class="haber-meta"><span>28 Nis 2026</span><div class="news-meta-dot"></div><span>Borsa İstanbul</span></div>
+          <div class="news-impact"><span style="font-size:10px;color:var(--text-dim)">Etki:</span><div class="impact-bar"><div class="impact-fill" style="width:55%;background:#7EB8F7"></div></div><span style="color:#7EB8F7">Orta</span></div>
+        </div>
+        <div class="haber-item" data-cat="maden" style="--tag-color:var(--gold)">
+          <span class="haber-tag" style="background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.2)">MADEN</span>
+          <div class="haber-title">Altın Fiyatları Dolar Güçlenmesiyle Geriledi — Uzun Vade Olumlu</div>
+          <div class="haber-meta"><span>28 Nis 2026</span><div class="news-meta-dot"></div><span>Reuters</span></div>
+          <div class="news-impact"><span style="font-size:10px;color:var(--text-dim)">Etki:</span><div class="impact-bar"><div class="impact-fill" style="width:40%;background:var(--gold)"></div></div><span style="color:var(--gold)">Orta</span></div>
+        </div>
+        <div class="haber-item" data-cat="kripto" style="--tag-color:var(--purple-glow)">
+          <span class="haber-tag" style="background:rgba(107,63,160,0.15);color:var(--purple-glow);border:1px solid rgba(107,63,160,0.2)">ETH</span>
+          <div class="haber-title">Ethereum 2.290 Dolar — BitMine ETH Alımları Devam Ediyor</div>
+          <div class="haber-meta"><span>28 Nis 2026</span><div class="news-meta-dot"></div><span>CoinDesk</span></div>
+          <div class="news-impact"><span style="font-size:10px;color:var(--text-dim)">Etki:</span><div class="impact-bar"><div class="impact-fill" style="width:65%;background:var(--purple-glow)"></div></div><span style="color:var(--purple-glow)">Yüksek</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- full list -->
+    <div style="display:flex;flex-direction:column;gap:10px" id="newsList">
+      <div class="haber-item" data-cat="ekonomi" style="--tag-color:#7EB8F7">
+        <span class="haber-tag" style="background:rgba(59,130,246,0.12);color:#7EB8F7;border:1px solid rgba(59,130,246,0.2)">EKONOMİ</span>
+        <div class="haber-title">Fed Bugün Faizi %3.50-3.75 Aralığında Sabit Tutması Bekleniyor — Powell Açıklaması Yakından İzlenecek</div>
+        <div class="haber-meta"><span>27 Nis 2026</span><div class="news-meta-dot" style="display:inline-block;margin:0 4px"></div><span>Anadolu Ajansı</span><div class="news-meta-dot" style="display:inline-block;margin:0 4px"></div><span>18:00</span></div>
+        <div class="news-impact" style="margin-top:6px"><span style="font-size:10px;color:var(--text-dim)">Piyasa Etkisi:</span><div class="impact-bar" style="width:60px"><div class="impact-fill" style="width:90%;background:var(--red)"></div></div><span style="color:var(--red)">Kritik</span></div>
+      </div>
+      <div class="haber-item" data-cat="hisse" style="--tag-color:#22C57A">
+        <span class="haber-tag" style="background:rgba(34,197,122,0.12);color:var(--green-glow);border:1px solid rgba(34,197,122,0.2)">HİSSE</span>
+        <div class="haber-title">THYAO Hisseleri %2.84 Yükseldi — Yeni Uçuş Güzergahları Açıklandı</div>
+        <div class="haber-meta"><span>27 Nis 2026</span><div class="news-meta-dot" style="display:inline-block;margin:0 4px"></div><span>Milliyet</span><div class="news-meta-dot" style="display:inline-block;margin:0 4px"></div><span>14:20</span></div>
+        <div class="news-impact" style="margin-top:6px"><span style="font-size:10px;color:var(--text-dim)">Piyasa Etkisi:</span><div class="impact-bar" style="width:60px"><div class="impact-fill" style="width:70%;background:var(--green-glow)"></div></div><span style="color:var(--green-glow)">Yüksek</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ AYARLAR ═══ -->
+  <div class="page" id="page-ayarlar">
+    <div class="card">
+      <div class="card-head"><span class="card-title">PROFİL</span></div>
+      <div style="padding:1.1rem">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:0.5rem">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--purple-accent));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:20px;font-weight:700;box-shadow:0 0 20px rgba(34,197,122,0.3)">E</div>
+          <div><div style="font-size:16px;font-weight:600;font-family:'Syne',sans-serif">Equo Kullanıcısı</div><div style="font-size:12px;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:3px">kullanici@equo.com.tr</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">BİLDİRİMLER & TERCİHLER</span></div>
+      <div style="padding:0 1rem">
+        <div class="setting-row"><div><div class="setting-label">Fiyat Alarmları</div><div class="setting-sub">Hedef fiyata ulaşınca bildir</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Finn YZ Önerileri</div><div class="setting-sub">Günlük piyasa özeti al</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Haber Bildirimleri</div><div class="setting-sub">Önemli haberler için anlık bildirim</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">İki Faktörlü Doğrulama</div><div class="setting-sub">Hesap güvenliği için 2FA</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">TEMA</span></div>
+      <div style="padding:1rem;display:flex;gap:10px">
+        <div style="flex:1;padding:0.75rem;border-radius:10px;background:rgba(14,6,30,0.9);border:2px solid var(--green-glow);cursor:pointer;text-align:center;font-size:12px;color:var(--green-glow);font-family:'DM Mono',monospace;box-shadow:0 0 12px rgba(34,197,122,0.15)">● Koyu (Aktif)</div>
+        <div style="flex:1;padding:0.75rem;border-radius:10px;background:rgba(107,63,160,0.1);border:1px solid var(--border);cursor:pointer;text-align:center;font-size:12px;color:var(--text-dim);font-family:'DM Mono',monospace">◯ Açık (Yakında)</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── PAGE NAV ──
+const pages={
+  pano:{title:'Genel Pano',crumb:'equo / pano'},
+  portfoy:{title:'Portföyüm',crumb:'equo / portföy'},
+  gecmis:{title:'İşlem Geçmişi',crumb:'equo / geçmiş'},
+  hisse:{title:'Hisse Senetleri',crumb:'equo / piyasalar / hisse'},
+  kripto:{title:'Kripto Paralar',crumb:'equo / piyasalar / kripto'},
+  madenler:{title:'Değerli Madenler',crumb:'equo / piyasalar / madenler'},
+  finn:{title:'Finn ile Analiz',crumb:'equo / finn'},
+  haberler:{title:'Piyasa Haberleri',crumb:'equo / haberler'},
+  ayarlar:{title:'Ayarlar',crumb:'equo / ayarlar'},
+};
+function goPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('pageTitle').textContent=pages[id].title;
+  document.getElementById('breadcrumb').textContent=pages[id].crumb;
+}
+
+// ── 3D PARTICLE CANVAS ──
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  class Particle{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*W;this.y=Math.random()*H;
+      this.vx=(Math.random()-0.5)*0.3;this.vy=(Math.random()-0.5)*0.2;
+      this.r=Math.random()*1.2+0.3;
+      this.alpha=Math.random()*0.5+0.1;
+      this.color=Math.random()<0.5?'34,197,122':'107,63,160';
+    }
+    update(){
+      this.x+=this.vx;this.y+=this.vy;
+      if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();
+    }
+    draw(){
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${this.color},${this.alpha})`;ctx.fill();
+    }
+  }
+  for(let i=0;i<120;i++)particles.push(new Particle());
+  // grid lines
+  function drawGrid(){
+    ctx.strokeStyle='rgba(107,63,160,0.04)';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  }
+  // connections
+  function drawConnections(){
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<100){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(107,63,160,${0.08*(1-d/100)})`;ctx.lineWidth=0.5;ctx.stroke();
+        }
+      }
+    }
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    drawGrid();
+    drawConnections();
+    particles.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// ── SPARKLINES ──
+const assets=[
+  {trend:[40,44,42,50,48,55,52,60,58,65],up:true},
+  {trend:[55,52,60,58,65,70,68,75,80,88],up:true},
+  {trend:[80,78,75,77,73,70,72,68,65,63],up:false},
+  {trend:[40,45,43,50,55,58,60,68,72,85],up:true},
+  {trend:[50,52,51,54,53,56,55,57,56,58],up:true}
+];
+function drawSpark(id,data,isUp){
+  const el=document.getElementById(id);if(!el)return;
+  const max=Math.max(...data);const color=isUp?'#22C57A':'#D94F4F';
+  el.innerHTML=data.map(v=>{const h=Math.round((v/max)*24);return`<div class="sbar" style="height:${h}px;background:${color}"></div>`;}).join('');
+}
+assets.forEach((a,i)=>drawSpark('s'+i,a.trend,a.up));
+
+// ── WEEK CHART ──
+const wb=[62,58,70,65,74,68,80,75,84,92];const wm=Math.max(...wb);
+const wc=document.getElementById('weekChart');
+if(wc)wc.innerHTML=wb.map((v,i)=>{const h=Math.round((v/wm)*58);const last=i===wb.length-1;return`<div class="mbar" style="height:${h}px;background:${last?'#22C57A':'rgba(29,158,104,0.35)'};opacity:${last?1:0.5+i*0.06}"></div>`;}).join('');
+
+// ── PANO TABLE SELECT ──
+const finnData=[
+  '<strong style="color:var(--green-glow)">BIST 100</strong>, Türkiye\'nin en büyük 100 şirketini kapsayan borsa endeksidir. Bugün <span style="color:#22C57A">▲ %0.64</span> yükseldi. Enflasyon, döviz kuru ve TCMB kararları fiyatı doğrudan etkiler. Bankacılık sektörünün güçlü performansı endeksi destekliyor.',
+  '<strong style="color:var(--green-glow)">Bitcoin (BTC)</strong>, dünyanın en büyük kripto parasıdır. Bugün <span style="color:#D94F4F">▼ %0.96</span> hafif geriledi. Sınırlı arz (21M BTC) ve kurumsal talep fiyatı destekliyor. Fed kararı öncesi yatırımcılar temkinli, ancak uzun vadeli trend olumlu görünüyor.',
+  '<strong style="color:var(--green-glow)">Altın</strong>, bugün <span style="color:#D94F4F">▼ %0.18</span> geriledi. Dolar endeksinin güçlenmesi baskı yarattı. Ancak jeopolitik gerginlikler ve enflasyon ortamında uzun vadeli güvenli liman özelliğini koruyor. Portföyde %10-15 altın dengeli bir hedge stratejisidir.',
+  '<strong style="color:var(--green-glow)">Ethereum (ETH)</strong>, bugün <span style="color:#22C57A">▲ %3.96</span> ile en güçlü performansı sergiliyor. DeFi ve akıllı sözleşme ekosisteminin temeli. BitMine\'in büyük alımları ve artan DeFi aktivitesi fiyatı yukarı taşıyor. Kurumsal ilgi güçlü.',
+  '<strong style="color:var(--green-glow)">Gümüş</strong>, hem değerli maden hem endüstriyel metal olarak çift taraflı talep görüyor. Bugün <span style="color:#22C57A">▲ %0.10</span> yükseldi. Güneş paneli ve elektronik sektörü talebi uzun vadeli destek sağlıyor. Altına göre daha volatil ama ucuz giriş fırsatı sunuyor.'
+];
+function selectRow(i){
+  document.querySelectorAll('.t-row').forEach((r,j)=>r.classList.toggle('selected',j===i));
+  showFinn(finnData[i]);
+}
+const quickChips={
+  bist:finnData[0],btc:finnData[1],
+  altin:'<strong style="color:var(--green-glow)">Altın</strong> bugün dolar güçlenmesi nedeniyle <span style="color:#D94F4F">▼ %0.18</span> geriledi. Fed faiz kararı ve DXY hareketleri kısa vadede belirleyici olacak. Ancak orta-uzun vadede enflasyona karşı en güvenilir korunma aracı olmaya devam ediyor.',
+  portfoy:'Portföyün bugün <span style="color:#22C57A">▲ %3.24</span> artışla <strong>₺284.750</strong> değerine ulaştı. En büyük katkıyı <strong>Ethereum</strong> sağlıyor. Dağılımın %59 hisse, %30 kripto, %11 maden — dengeli bir yapı. ETH\'nin güçlü günü portföyü olumlu etkiledi. Kripto volatilitesini dengelemek için maden oranını %15\'e çıkarmayı değerlendirebilirsin.'
+};
+function askFinn(key){showFinn(quickChips[key]);}
+function showFinn(text){
+  const body=document.getElementById('finnBody');
+  const t=document.getElementById('finnTyping');
+  body.style.opacity='0.2';t.style.display='flex';
+  setTimeout(()=>{t.style.display='none';body.innerHTML=text;body.style.opacity='1';},900);
+}
+
+// ── FINN CHAT AI (GELİŞMİŞ) ──
+const finnResponses=[
+  // selamlama
+  {keys:['merhaba','selam','hey','hello','hi','naber','napıyorsun'],
+   resp:'Merhaba! 👋 Harika bir gün geçirmenizi diliyorum! Ben Finn — yatırım platformunuzun yapay zeka asistanıyım. Bugün size nasıl yardımcı olabilirim? Piyasa analizi, portföy değerlendirmesi veya herhangi bir finans sorusu sorabilirsiniz.'},
+  {keys:['nasılsın','nasıl gidiyor','iyi misin','ne haber'],
+   resp:'Teşekkür edersiniz, çok iyiyim! 😊 Bugün piyasalar oldukça hareketli — Ethereum güçlü performans sergiliyor. Sizin için ne yapabilirim? Portföyünüzü analiz etmemi ister misiniz?'},
+  {keys:['teşekkür','sağol','eyvallah','thanks'],
+   resp:'Rica ederim! 🙏 Yardımcı olabildiysem ne mutlu. Başka bir sorum varsa her zaman buradayım. İyi yatırımlar!'},
+  // piyasa
+  {keys:['bitcoin','btc'],
+   resp:'<strong style="color:#22C57A">Bitcoin (BTC)</strong> bugün ₺3.440.622 seviyesinde işlem görüyor, hafif <span style="color:#D94F4F">▼ %0.96</span> geriledi. Fed kararı öncesi yatırımcılar temkinli. Sınırlı arz (21M BTC) ve spot ETF onaylarıyla kurumsal talep güçlü. Uzun vadede yukarı trendi koruyor.'},
+  {keys:['ethereum','eth'],
+   resp:'<strong style="color:#22C57A">Ethereum (ETH)</strong> bugünün yıldızı — <span style="color:#22C57A">▲ %3.96</span> ile ₺103.050 seviyesinde. BitMine büyük alımlar yapıyor, DeFi aktivitesi artıyor. Akıllı sözleşme ekosisteminin en önemli altyapısı olarak uzun vadeli görünüm olumlu.'},
+  {keys:['bist','borsa','thyao','garan','hisse'],
+   resp:'<strong style="color:#22C57A">BIST 100</strong> bugün <span style="color:#22C57A">▲ %0.64</span> ile 14.421 puanda. Bankacılık endeksi öne çıkıyor. THYAO <span style="color:#22C57A">▲ %2.84</span> ile en güçlü performansı sergileyen hisse. TCMB politikası ve enflasyon verileri yakından takip edilmeli.'},
+  {keys:['altın','gold','xau','altin'],
+   resp:'<strong style="color:#22C57A">Altın</strong> bugün dolar güçlenmesiyle <span style="color:#D94F4F">▼ %0.18</span> geriledi, ₺6.644 seviyesinde. Kısa vadede Fed kararı belirleyici. Uzun vadede enflasyon ve jeopolitik riskler altını destekliyor. Portföyde %10-15 oranında bulundurmak klasik bir stratejidir.'},
+  {keys:['gümüş','silver','xag'],
+   resp:'<strong style="color:#22C57A">Gümüş</strong> bugün <span style="color:#22C57A">▲ %0.10</span> yükseldi, ₺106 seviyesinde. Endüstriyel kullanımı (güneş paneli, elektronik) ile değerli maden özelliğini birleştiriyor. Altına göre daha volatil ama uzun vadeli potansiyel taşıyor.'},
+  {keys:['kripto','crypto','coin'],
+   resp:'Kripto piyasası bugün karışık bir seyir izliyor. Toplam piyasa değeri $2.84T. Bitcoin dominansı %54.2 ile güçlü. Korku & Açgözlülük endeksi 72 (Açgözlülük bölgesi). ETH bugünün lideri. Fed kararı sonrası volatilite artabilir.'},
+  {keys:['portföy','portföyüm','portfolio'],
+   resp:'Portföyünüz bugün <span style="color:#22C57A">▲ %3.24</span> artışla <strong>₺284.750</strong> değerine ulaştı. Toplam kazancınız <strong>+₺43.550 (+%18.1)</strong>. ETH pozisyonunuz bugün en fazla değer katan varlık. Dağılım: %59 Hisse, %30 Kripto, %11 Maden — sağlıklı bir çeşitlendirme yapısı.'},
+  {keys:['fed','faiz','merkez bankası','tcmb'],
+   resp:'<strong style="color:#22C57A">Fed</strong> bugün faizi %3.50-3.75 aralığında sabit tutması bekleniyor. Powell\'ın açıklamaları tüm piyasalar için kritik. Olası faiz indirimi işaretleri: Kripto ve hisse için pozitif, dolar için negatif olur. TCMB kararları da yakından izleniyor.'},
+  {keys:['bugün','piyasa','piyasalar','durum'],
+   resp:'📊 <strong>Bugün Piyasalara Genel Bakış:</strong><br>• BIST 100: <span style="color:#22C57A">▲ %0.64</span> — güçlü açılış<br>• Bitcoin: <span style="color:#D94F4F">▼ %0.96</span> — Fed bekleyişi<br>• Ethereum: <span style="color:#22C57A">▲ %3.96</span> — günün yıldızı ⭐<br>• Altın: <span style="color:#D94F4F">▼ %0.18</span> — dolar baskısı<br><br>Genel tablo karışık ama portföyünüz olumlu seyrediyor.'},
+  {keys:['yatırım','ne alayım','tavsiye','öneri'],
+   resp:'⚠️ Yatırım tavsiyesi vermek yerine bilgi sunuyorum. Genel prensipler: <br>• Çeşitlendirme her zaman önce gelir<br>• Kısa vadeli dalgalanmalardan etkilenme<br>• Risk toleransınıza uygun pozisyon al<br>• Kripto için portföyün max %20-30\'unu ayır<br>Kararlarınızı kendi araştırmalarınızla destekleyin.'},
+];
+
+function findFinnResp(msg){
+  const low=msg.toLowerCase();
+  for(const r of finnResponses){
+    if(r.keys.some(k=>low.includes(k)))return r.resp;
+  }
+  return`Harika bir soru! Piyasaları analiz ediyorum... 🔍<br><br>Bu konuda daha spesifik bilgi vermek için: <strong style="color:#22C57A">Bitcoin</strong>, <strong style="color:#22C57A">Ethereum</strong>, <strong style="color:#22C57A">BIST</strong>, <strong style="color:#22C57A">Altın</strong> veya <strong style="color:#22C57A">Portföy</strong> gibi anahtar kelimeler kullanabilirsin. Yatırım kararlarınızda çeşitlendirme ve uzun vadeli düşünce en önemli unsurlardır.`;
+}
+
+function sendFinn(){
+  const input=document.getElementById('finnInput');
+  const chat=document.getElementById('finnChat');
+  const msg=input.value.trim();if(!msg)return;
+  chat.innerHTML+=`<div class="finn-msg user">${msg}</div>`;
+  input.value='';chat.scrollTop=chat.scrollHeight;
+  setTimeout(()=>{
+    const resp=findFinnResp(msg);
+    chat.innerHTML+=`<div class="finn-msg finn"><strong style="color:#22C57A">Finn:</strong> ${resp}</div>`;
+    chat.scrollTop=chat.scrollHeight;
+  },800+Math.random()*400);
+}
+function finnChat(msg){document.getElementById('finnInput').value=msg;sendFinn();}
+
+// ── NEWS FILTER ──
+function filterNews(cat,el){
+  document.querySelectorAll('.nf-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const allItems=document.querySelectorAll('[data-cat]');
+  allItems.forEach(item=>{
+    if(cat==='all'||item.dataset.cat===cat){
+      item.style.display='';item.style.animation='msgIn 0.3s ease-out';
+    }else{item.style.display='none'}
+  });
+}
+</script>
+</body>
+</html>
+
